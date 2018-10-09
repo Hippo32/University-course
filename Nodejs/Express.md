@@ -246,9 +246,14 @@ res.render的功能是调用模板引擎，并将其产生的页面直接返回�
 
 	res.render('index', { title: 'Express' });
 
+## 会话中间件 ##
+默认情况下是把用户信息存储在内存中。
+
 参考文档：
 
+- [express4.x官方文档](http://www.expressjs.com.cn/4x/api.html)
 - [Express目录结构及各部分功能](https://www.jianshu.com/p/9e06d4e859ab)
 - Node.js开发指南
 - [express 的router(路由)](https://blog.csdn.net/angle_jian/article/details/78073292)
+- [express路由设计](https://blog.csdn.net/zzwwjjdj1/article/details/51839754)
 
