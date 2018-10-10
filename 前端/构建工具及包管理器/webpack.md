@@ -1,0 +1,278 @@
+# webpack #
+## 什么是Webpack ##
+WebPack可以看做是模块打包机：它做的事情是，分析你的项目结构，找到JavaScript模块以及其它的一些浏览器不能直接运行的拓展语言（Scss，TypeScript等），并将其转换和打包为合适的格式供浏览器使用。
+
+Webpack的**工作方式**是：把你的项目当做一个整体，通过一个给定的主文件（如：index.js），Webpack将从这个文件开始找到你的项目的所有依赖文件，使用loaders处理它们，最后打包为一个（或多个）浏览器可识别的JavaScript文件。
+
+Webpack是一个模块打包的工具，它的作用是把互相依赖的模块处理成静态资源。
+
+
+## 安装Webpack ##
+全局安装webpack
+
+    npm install webpack -g 
+
+作为项目的开发依赖（devDependencies）安装
+
+	npm install --save-dev webpack
+
+## 使用Webpack ##
+在安装Webpack的目录下，即Webpack目录下创建一个称为hello.js的模块
+
+    //hello.js
+	export default function () {
+    alert('from anohter planet')
+	}
+
+    //index.js
+	import hello from './hello'
+	//调用这个方法
+	hello()
+
+使用webpack来处理我们的入口文件。使用webpack cli可以传入两个参数，第一个是入口文件，这里就是index.js，第二个是输出文件的名字，这里命名为bundle.js，暂时不管bundle.js里面是什么内容。
+
+    webpack index.js bundle.js
+现在发现bundle.js被创建出来，再创建一个html页面来引用它。
+
+    <html>
+  		<head>
+    		<title> Our first webpack exmaple </title>
+  		</head>
+  		<body>
+    		<script src="bundle.js"></script>
+  		</body>
+	</html>
+用浏览器打开这个html页面，发现alert出现了，成功。
+
+上面的例子参考的是[Webpack傻瓜式指南](https://github.com/vikingmute/webpack-for-fools/blob/master/entries/newchapter-1.md "Webpack傻瓜式指南")，下面的例子参考的是[入门webpack，看这篇就够了](https://www.jianshu.com/p/42e11515c10f "入门webpack，看这篇就够了")
+
+
+## 通过配置文件来使用Webpack ##
+定义一个配置文件`webpack.config.js`，这个配置文件其实也是一个简单的JavaScript模块，我们可以把所有的与打包相关的信息放在里面。
+
+    module.exports = {
+	 entry: __dirname + "/app/main.js",//已多次提及的唯一入口文件
+	 output: {
+		path: __dirname + "/public",//打包后的文件存放的地方 
+	 	filename: "bundle.js"//打包后输出文件的文件名
+		}
+	}
+"__dirname"是node.js中的一个全局变量，它指向当前执行脚本所在的目录。
+
+有了这个配置之后，再打包文件，只需在终端里运行`webpack`命令就可以了，这条命令会自动引用`webpack.config.js`文件中的配置选项。
+
+
+# Webpack的强大功能 #
+## 生成Source Maps（使调试更容易） ##
+通过简单的配置，webpack就可以在打包时为我们生成的`source maps`，这为我们提供了一种对应编译文件和源文件的方法，使得编译后的代码可读性更高，也更容易调试。
+
+## 使用webpack构建本地服务器 ##
+webpack提供一个可选的本地开发服务器，这个本地服务器基于node.js构建，可以让你的浏览器监听你的代码的修改，并自动刷新显示修改后的结果，不过它是一个单独的组件，在webpack中进行配置之前需要单独安装它作为项目依赖
+
+    npm install --save-dev webpack-dev-server
+
+|devsserver的配置选项 | 功能描述|
+|------------------- |:-------:|
+|contentBase|默认webpack-dev-server会为根文件夹提供本地服务器，如果想为另外一个目录下的文件提供本地服务器，应该在这里设置其所在目录（本例设置到“public"目录）|
+|port|设置默认监听端口，如果省略，默认为“8080”|
+|inline|设置为`true`，但源文件改变时会自动刷新页面|
+|historyApiFallback|在开发单页应用时非常有用，它依赖于HTML5historyAPI，如果设置为true，所有的跳转将指向index.html|
+把这些命令加到webpack的配置文件中，现在的配置文件`webpack.config.js`如下图所示
+    
+    module.exports = {
+	devtool: 'eval-source-map',
+
+	entry:__dirname + "/app/main.js",// 已多次提及的唯一入口文件
+	output: {
+		path: __dirname + "/public",// 打包后的文件存放的地方
+		filename: "bundle.js"// 打包后输出文件的文件名
+	},
+
+	devServer: {
+		contentBase: "./public",//本地服务器所加载的页面所在的目录
+		historyApiFallback: true,//不跳转
+		inline:true
+	}
+	}
+在`package.json`中的`scripts`对象中添加如下命令，用以开启本地服务器：
+
+    "scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "webpack",
+		"server": "webpack-dev-server --open"
+	},
+在终端中输入`npm run server`即可在本地的`8080`端口查看结果
+
+## Loaders ##
+通过使用不同的`loader`，`webpack`有能力调用外部的脚本或工具，实现对不同格式的文件的处理，比如说分析转换scss为css，或者把下一代的JS文件（ES6，ES7)转换为现代浏览器兼容的JS文件，对React的开发而言，合适的Loaders可以把React的中用到的JSX文件转换为JS文件。
+
+Loaders需要单独安装并且需要在`webpack.config.js`中的`modules`关键字下进行配置，Loaders的配置包括以下几方面：
+
+- `test`：一个用以匹配loaders所处理文件的拓展名的正则表达式（必须）
+- `loader`：loader的名称（必须）
+- `include/exclude`:手动添加必须处理的文件（文件夹）或屏蔽不需要处理的文件（文件夹）（可选）
+- `query`：为loaders提供额外的设置选项（可选）
+
+**例子：添加处理css文件需要的两个Loader**
+
+1. 在项目目录下线安装处理css文件需要的两个Loader
+
+    	npm install style-loader css-loader --save-dev
+2. 在webpack.config.js中修改，教会webpack用什么Loader处理什么类型的文件
+	
+	    module.exports = {
+    		// 入口文件名称
+   			entry: './index.js',
+    		// 输出文件名称
+    		output: {
+        		filename: 'bundle.js'
+    		},
+    		// 这里是我们新添加的处理不同类型文件需要的 Loader
+    		module: {
+    			rules: [
+    				{ test: /\.css$/, use: [ { loader: 'style-loader' }, { loader: 'css-loader' } ]}
+    			]
+    		}
+		}
+仔细分析一下这一句语法：
+
+		{ test: /\.css$/, use: [ { loader: 'style-loader' }, { loader: 'css-loader' } ]}
+前面test传入一个正则表达式，代表你要处理什么类型的文件，这里指的是后缀名为.css的文件，后面的use传入一个数组，代表着这个文件龟背这两个Loader所处理，一个文件可以被多个Loader所处理。
+
+ps：style-loader作用是将样式动态的使用js插入到页面中去，css-loader使你能够使用类似@import 和 url(...)的方法实现 require()的功能。webpack的特点之一：任何类型的模块（资源文件），理论上都可以通过被转化为JavaScript代码实现与其他模块的合并与加载
+
+在官方网站找到各种webpack的loaders列表：[Webpack Loader List](https://webpack.js.org/loaders/ "Webpack Loader List")
+## 插件（Plugins） ##
+插件（Plugins）是用来拓展Webpack功能的，它们会在整个构建过程中生效，执行相关的任务。
+
+loaders是在打包构建过程中用来处理源文件的（JSX，Scss，Less……），一次处理一个，插件并不直接操作单个文件，它直接对整个构建过程起作用。Loader 关心的是单个文件的处理和转换，而 Plugin 更关注于整个项目整体的处理和帮助。
+
+要使用某个插件，我们需要通过`npm`安装它，然后要做的就是在webpack配置中的plugins关键字部分添加该插件的一个实例（plugins是一个数组）。
+
+**常用的插件**
+
+**HtmlWebpackPlugin**
+
+这个插件的作用是依据一个简单的`index.html`模板，生成一个自动引用你打包后的JS文件的新`index.html`。这在每次生成的js文件名称不同时非常有用（比如添加了`hash`值）。
+
+**安装**
+
+    npm install --save-dev html-webpack-plugin
+
+这个插件自动完成了我们之前手动做的一些事情，在正式使用之前需要对一直以来的项目结构做一些更改：
+
+1. 移除public文件夹，利用此插件，index.html文件会自动生成，此外CSS已经通过前面的操作打包到JS中了。
+2. 在app目录下，创建一个`index.tmpl.html`文件模板，这个模板包含`title`等必须元素，在编译过程中，插件会依据此模板生成最终的`html`页面，会自动添加所依赖的 css, js，favicon等文件，`index.tmpl.html`中的模板源代码如下：
+
+
+		<!DOCTYPE html>
+		<html>
+		<head lang="en">
+			<meta charset="utf-8">
+			<title>Webpack Sample Project</title>
+		</head>
+		<body>
+			<div id="root">
+			</div>
+		</body>
+		</html>
+-----
+
+**Hot Module Replacement**
+`Hot Module Replacement`（HMR）允许你在修改组件代码后，自动刷新实时预览修改后的效果。
+
+在webpack中实现HMR也很简单，只需要做两项配置
+
+- 在webpack配置文件中添加HMR插件；
+- 在Webpack Dev Server中添加“hot”参数；
+
+不过配置完这些后，JS模块其实还是不能自动热加载的，还需要在里的JS模块中执行一个Webpack提供的API才能实现加载，虽然这个API不难使用，但是如果是React模块，使用我们已经熟悉的Babel可以更方便的实现功能热加载。
+
+具体实现方法如下：
+
+- `Babel`和`webpack`是独立的工具
+- 二者可以一起工作
+- 二者都可以通过插件扩展功能
+- HMR是一个webpack插件，它让你能在浏览器中实时观察模块修改后的效果，但是如果你想让它工作，需要对模块进行额外的配额；
+- Babel有一个叫做`react-transform-hrm`的插件，可以在不对React模块进行额外的配置的前提下让HMR正常工作；
+
+配置
+
+	const webpack = require('webpack');
+	const HtmlWebpackPlugin = require('html-webpack-plugin');
+	module.exports = {
+		entry:__dirname + "/app/main.js",// 已多次提及的唯一入口文件
+		output: {
+			path: __dirname + "/public",// 打包后的文件存放的地方
+			filename: "bundle.js"// 打包后输出文件的文件名
+		},
+		devtool: 'eval-source-map',//使调试更容易
+		devServer: {
+			contentBase: "./public",//本地服务器所加载的页面所在的目录
+			historyApiFallback: true,//不跳转
+			inline:true//实时刷新
+		},
+		module: {
+			rules: [
+				{
+					test: /(\.jsx|\.js)$/,
+					use: {
+						loader: "babel-loader",
+					},
+					exclude: /nodee_modules/
+				},
+				{
+					test: /\.css$/,
+					use: [
+						{
+							loader: "style-loader"
+						},{
+							loader: "css-loader",
+							options: {
+								modules: true,// 指定启用css modules
+								localIdentName: '[name]__[local]--[hash:base64:5]' // 指定css的类名格式
+							},
+						},{
+								loader: "postcss-loader"
+							}
+					]
+				}
+			]
+		},
+		plugins: [
+			new webpack.BannerPlugin('版权所有，翻版必究'),
+			new HtmlWebpackPlugin({
+			template: __dirname + "/app/index.tmpl.html"//new 一个这个插件的实例，并传入相关的参数
+		}),
+			new webpack.HotModuleReplacementPlugin()//热加载插件
+		],
+	};
+
+安装`react-transform-hmr`
+
+	npm install --save-dev babel-plugin-react-transform react-transform-hmr
+
+配置Babel
+
+	// .babelrc 
+	{ 
+		"presets": ["react", "env"], 
+		"env": { 
+			"development": { 
+			"plugins": [["react-transform", { 
+				"transforms": [{ 
+					"transform": "react-transform-hmr", 
+					"imports": ["react"],
+					 "locals": ["module"] 
+					}] 
+				}]] 
+			} 
+		} 
+	}
+
+现在当你使用React时，可以热加载模块了，每次保存就能在浏览器上看到更新内容。
+
+参考文章：
+
+- [Webpack傻瓜式指南](https://github.com/vikingmute/webpack-for-fools/blob/master/entries/newchapter-1.md "Webpack傻瓜式指南")
+- [入门webpack，看这篇就够了](https://www.jianshu.com/p/42e11515c10f "入门webpack，看这篇就够了")
