@@ -12,3 +12,6 @@
 		<div class="form-group"></div>
 		<div class="form-group"></div>
 	</form>
+
+## 导航栏 ##
+如果你想创建一个简单的水平导航栏，可以在 `<ul>` 元素上添加 `.nav`类，在每个 `<li>` 选项上添加 `.nav-item` 类，在每个链接上添加 `.nav-link` 类。

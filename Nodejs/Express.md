@@ -249,6 +249,86 @@ res.render的功能是调用模板引擎，并将其产生的页面直接返回�
 ## 会话中间件 ##
 默认情况下是把用户信息存储在内存中。
 
+
+# express模块 #
+Node中的核心模块分两类：一类是自带的核心模块，如http、tcp等，第二类是第三方核心模块，express就是与http对应的第三方核心模块，用于处理http请求。express在3.0版本中自带有很多中间件，但是在express4.0以后，就将除static（静态文件处理）以外的其它中间件分离出来了；在4.0以后需要使用中间件时，就需要单独安装好相应的中间件以后调用，以下是3.0与4.0中间件区别（3.0是内置中间件属性名，4.0是需要安装的中间件名称）：
+
+|Express 3.0 Name|Express 4.0 Name|
+|-|-|
+|bodyParser|body-parser|
+|compress|compression|
+|cookieSession|cookie-session|
+|logger|morgan|
+|cookieParser|cookie-parser|
+|session|express-session|
+|favicon|static-favicon|
+|response-time|response-time|
+|error-handler|errorhandler|
+|method-override|method-override|
+|timeout|connect-timeout|
+|vhost|vhost|
+|csrf|csurf|
+
+## bodyparser ##
+方便我们解析浏览器发送来的body数据
+
+四个方法：
+
+- bodyParser.json(options)：处理json数据
+- bodyParser.raw(options)：处理Buffer流数据
+- bodyParser.text(options):文本数据
+- bodyParser.urlencoden(options)：UTF-8的编码的数据
+
+## express-session ##
+方便我们处理客户端的session。
+
+由于session的机制离不开cookie，故express-session中创建session时可以接收的options常见的有：cookie，name（，resave（是否每次都重新保存会话）
+
+服务器中生成cookie要存储在客户端时，服务端主要是设置set-cookie头，让它随响应信息response发送到客户端。那么服务器端设置set-cookie头的参数主要通过`response.cookie(name, value[,options])`设置，`response.cookie`是express对象设置cookie的方法。
+
+name：cookie的名字
+
+value：规定cookie的值。
+
+options对象是用来设置set-cookie头部的选项。
+
+|属性|类型|描述|
+|-|-|-|
+|domain|String|设置cookie的域名。默认是你本app的域名。|
+|expires|Date|cookie的过期时间，GMT格式。如果没有指定或者设置为0，则产生新的cookie。|
+|httpOnly|Boolean|这个cookie只能被web服务器获取的标示。|
+|maxAge|String|是设置过去时间的方便选项，其为过期时间到当前时间的毫秒值。|
+|path|String|cookie的路径。默认值是/。|
+|srcure|Boolean|表示这个cookie只用被HTTPS协议使用。|
+|signed|Boolean|指示这个cookie应该是签名的。|
+
+例：
+
+	app.use(session({
+		secret: 'my app secret', // 用来对sessionID相关的cookie进行签名
+		saveUninitialized: false, // 是否自动保存未初始化的会话，建议false
+		resave: false, // 是否每次都重新保存会话，建议false
+		store: new MongoStore({ // 创建新的mongodb数据库存储session
+			host: 'localhost', // 数据库的地址，本机的话就是127.0.0.1，也可以是网络主机
+			port: 27017, // 数据库的端口号
+			db: 'test-app' //数据库的名称
+		}),
+		name: 'test', // cookie的name，默认值是：connect.sid
+		cookies: {
+			maxAge: 10*1000
+		}
+	}));
+
+一旦我们将express-session中间件用use挂载后，我们可以很方便的通过req参数来存储和访问session对象的数据。req.session是一个JSON格式的JavaScript对象，我们可以在使用的过程中随意的增加成员，这些成员会自动的被保存到option参数指定的地方，默认即为内存中去。
+
+## cookie-parser ##
+cookie的值value是一串字符或者是转化为json字符串的对象，cookie-parser是将cookie的值由字符串解析成对象的中间件，当使用cookie-parser中间件的时候，可以通过express中的request对象cookies属性`req.cookies`查看cookies的值，比如`req.cookies.name`。`req.cookies`这个属性是一个对象，其包含了请求发送过来的cookies。如果请求没有带cookies，那么其值为{}。
+
+## config-lite ##
+config-lite是一个轻量的读取配置文件的模块。
+
+config-lite会根据环境变量（NODE-ENV）的不同从当前执行进程目录下的config目录加载不同的配置文件。
+
 参考文档：
 
 - [express4.x官方文档](http://www.expressjs.com.cn/4x/api.html)
