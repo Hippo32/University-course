@@ -62,7 +62,7 @@ prop可以让你在组件上注册一些自定义特性。当一个值传递给�
 
 	<blog-post title="My journey with Vue"></blog-post> //可以用v-bind动态传递prop
 
-> 如果props在Vue.component中采用的是camelCase（驼峰命名法），则在HTML中要用kebab-case（短横线分隔命名）命名。
+> HTML中的特姓名是大小写不敏感的，所以浏览器会把所有大写字符解释为小写字符。如果props在Vue.component中采用的是camelCase（驼峰命名法），则在HTML中要用kebab-case（短横线分隔命名）命名。
 
 	Vue.component('blog-post', {
 		props: ['postTitle'],
@@ -75,7 +75,13 @@ prop可以让你在组件上注册一些自定义特性。当一个值传递给�
 **prop类型**
 
 - 字符串数组形式
-- 对象形式：key：属性名称，value：类型（例：`title: String`）
+- 对象形式：key：属性名称，value：类型
+
+		props: ['title', 'likes']
+		props: {
+			title: String,
+			likes: Number
+		}
 
 **传递prop**
 
@@ -83,7 +89,7 @@ prop可以让你在组件上注册一些自定义特性。当一个值传递给�
 
 静态传prop：`value="23"`
 
-动态传prop：`value="checked"`，Vue实例的data那里要声明了`checked`。
+动态传prop（通过`v-bind`）：`:value="checked"`，Vue实例的data那里要声明了`checked`。
 
 - 传入数字：`:value="23"`，虽然是静态变量，也要用`v-bind`，不加的话，`{{ typeof value }}`输出的值为`String`，加了的话输出`Number`。
 - 传入布尔值
@@ -103,7 +109,126 @@ prop可以让你在组件上注册一些自定义特性。当一个值传递给�
 - 传入数组
 - 传入对象：可以传单独一个属性，也可以传一个对象的所有属性
 
-prop传值属于单向传值，只能由父级传向子组件。
+**单向数据流**
+
+prop传值属于单向传值，只能由父级传向子组件。父级prop的更新会向下流动到子组件中，但是反过来则不行。不应该在一个子组件内部改变prop。如果你这样做了，Vue会在浏览器的控制台中发出警告。
+
+这里有两种常见的试图改变一个prop的情形：
+
+1. 这个prop用来传递一个初始值；这个子组件接下来希望将其作为一个本地的prop数据来使用。在这种情况下，最好定义一个本地的data属性并将这个prop用作其初始值：
+
+		props: ['initialCounter'],
+		data: function() {
+			return {
+				counter: this.initialCOunter
+			}
+		}
+2. 这个prop以一种原始的值传入且需要进行转换。在这种情况下，最好使用这个prop的值来定义一个计算属性：
+
+		props: ['size'],
+		computed: {
+			normalizedSize: function() {
+				return this.size.trim().toLowerCase()
+			}
+		}
+
+**prop验证**
+
+	Vue.component('my-component', {
+		props: {
+			// 基础的类型检查（'null'匹配任何类型）
+			propA: Number,
+			// 多个可能的类型
+			propB: [String, Number],
+			//必填的字符串
+			propC: {
+				type: String,
+				required: true
+			},
+			// 带有默认值的数字
+			propD: {
+				type: Number,
+				default: 100
+			},
+			// 带有默认值的对象
+			propE: {
+				type: Object,
+				// 对象或数组默认值必须从一个工厂函数获取
+				default: function () {	
+					retrurn { message: 'hello' }
+				}
+			},
+			// 自定义验证函数
+			propF: {
+				validator: function (value) {
+					// 这个值必须匹配下列字符串中的一个
+					return ['success', 'warning', 'danger'].indexOf(value) !== -1
+				}
+			}
+		}
+	})
+
+自定义验证函数的例子
+
+    <div id="app">
+            <test :author="post"></test>
+    </div>
+    <script>
+        Vue.component('test', {
+            props: {
+                author: {
+                    validator: function (value) {
+                        return ['success', 'warning', 'danger'].indexOf(value) !== -1
+                    }
+                }      
+            },
+            template: "<p>{{author}}</p>",      
+        })          
+        var vm = new Vue({
+            el: "#app",
+            data: {
+                post: "warning"
+            }
+        })
+    </script>
+`type`可以是下面原生构造器：String、Number、Boolean、Function、Object、Array、Symbol。`type`还可以是一个自定义的构造函数，并且通过`instanceof`来进行检查确认。
+
+	// 自定义构造函数的例子
+    <div id="app">
+            <test :author="post"></test>
+    </div>
+    <script>
+        Vue.component('test', {
+            props: {
+                author: Person
+                },
+            template: "<p>{{test}}</p>", // true
+            computed: {
+                test: function() {
+                    return this.author instanceof Person;
+                }
+            }
+        })
+        function Person(first, last) {
+            this.first = first;
+            this.last = last;
+        } 
+        var vm = new Vue({
+            el: "#app",
+            data: {
+                post: new Person("aaa", "bbb")
+            }
+        })
+    </script>
+
+**非Prop的特性**
+
+非Prop特性是指可以添加任意的特性在父级，而且这些特性会被添加到这个组件的根元素上，但是父级不能向子组件传递这个特性的信息。
+
+**哪些特性会被替换，哪些特性会被合并？**  
+对于绝大多数特性来说，从外部提供给组件的值会替换组件内部设置好的值。所以如果传入`type="text"`就会替换掉`type="date"`并把它破坏！庆幸的是，`class`和`style`特性会稍微智能一下，即两边的值会被合并起来，从而得到最终的值。
+
+如果不希望组件的根元素继承特性，可以在组件的选项中设置`inheritAttrs: false`。但是`class`特性还是会继承。
 
 ----------
 
@@ -114,6 +239,8 @@ prop传值属于单向传值，只能由父级传向子组件。
 	<button v-on:click="$emit('enlarge-text', 0.1)">...
 
 父级可以用`v-on`监听这个事件。可以用`$event`访问到子组件传过来的值。如果这个事件处理函数是一个函数，则这个值会作为第一个参数传入这个参数。
+
+推荐始终使用kebab-case的事件名。
 
 
 例子：
@@ -181,6 +308,72 @@ prop传值属于单向传值，只能由父级传向子组件。
             }
         })
     </script>
+
+一个组件的`v-model`默认会利用名为`value`的prop名和名为`input`的事件，但是像单选框、复选框等类型的输入控件可能会将`value`特性用于不同的目的。`model`选项可以用来避免这样的冲突。
+
+	Vue.component('base-checkbox', {
+		model: {
+			prop: 'checked',
+			event: 'change'
+		}, 
+		props: {
+			checked: Boolean
+		},
+		template: `
+			<input
+				type="checkbox"
+				:checked="checked"
+				@change="$emit('change', $event.target.checked)"
+			>
+		`
+	})
+这个时候在这个组件上使用`v-model`，用的是名为`checked`的prop名和名为`change`的事件。
+
+注意：你仍然需要在组件的`props`选项里声明`checked`这个prop。
+
+### 将原生事件绑定到组件 ###
+`$listeners`：包含可父作用域中的（不含`.native`修饰器的）`v-on`事件监听器。它可以通过`v-on="$listeners"`传入内部组件。
+
+### .sync修饰符 ###
+	this.$emit('update: title', newTitle)
+
+	// 父组件可以监听这个事件，并且（如果需要的话）更新一个本地数据属性。例如：
+	<text-document
+		v-bind:title="doc.title"
+		v-on:update:title="doc.title = $event"
+	></text-document>
+为了简便，我们使用`.sync`修饰符，提供了这个模式的简写：
+
+	<text-document v-bind:title.sync="doc.title"></text-document>
+
+## 插槽 ##
+
+## 动态组件 ##
+用`component`标签和`is`实现。
+
+	<component v-bind:is="xxx"></component>
+
+## 处理边界情况 ##
+- 访问根实例：`$root`
+- 访问父级组件实例：`$parent`
+- 访问子组件实例或子元素：通过`ref`特性为子组件赋予一个ID引用，用`$refs`来访问。
+- 依赖注入：
+	- `provide`：允许我们指定我们想要提供给后代组件的数据/方法。
+
+			provide: function() {
+				return {
+					getMap: this.getMap
+				}
+			}
+	- `inject`：接收指定的我们想要添加在这个实例上的属性。
+
+			inject: ['getMap']
+
+- 程序化的事件侦听器
+	- 通过`$on(eventName, eventHandler)`侦听一个事件
+	- 通过`$once(eventName, eventHandler)`一次性侦听一个事件
+	- 通过`$off(eventName, eventHandler)`停止侦听一个事件
+
 
 ## 组件的风格指南 ##
 - 只要能够拼接文件的构建系统，就把每个组件单独分成文件。

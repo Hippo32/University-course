@@ -22,14 +22,38 @@ HTTP是基于传输层TCP协议的，而TCP是一个端到端的面向连接的�
 方法、资源的路径、协议的版本
 
 ## HTTP请求方法 ##
-- GET
-- POST
+- GET：从指定的资源请求数据
+- POST：向指定的资源提交要被处理的数据
 - PUT
 - DELETE
 - HEAD：仅请求响应首部
 - OPTIONS：返回请求的资源所支持的方法的方法
 - CONNECT
 - TRACE
+
+### 比较GET与POST ###
+GET方法：
+
+- 查询字符串（名称/值对）是在GET请求的URL中发送的。
+- GET请求可被缓存
+- GET请求保留在浏览器历史记录中
+- GET请求可被收藏为书签
+- GET请求不应在处理敏感数据时使用
+- GET请求只应当于取回数据
+
+POST方法：
+
+- 查询字符串（名称/值对）是在POST请求的HTTP消息主体中发送的。
+- POST请求不会被缓存
+- POST请求不会保留在浏览器历史记录中
+- POST不能被收藏为书签
+- POST请求对数据长度没有要求
+
+![](https://i.imgur.com/t2MQWbq.png)
+
+参考文章：
+
+- [GET和POST两种基本请求方法的区别](https://www.cnblogs.com/logsharing/p/8448446.html)
 
 ## HTTP响应 ##
 1. 状态行
