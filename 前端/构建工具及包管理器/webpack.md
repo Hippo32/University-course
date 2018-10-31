@@ -1,4 +1,6 @@
 # webpack #
+webpack版本：4.23.1
+
 ## 什么是Webpack ##
 WebPack可以看做是模块打包机：它做的事情是，分析你的项目结构，找到JavaScript模块以及其它的一些浏览器不能直接运行的拓展语言（Scss，TypeScript等），并将其转换和打包为合适的格式供浏览器使用。
 
@@ -6,8 +8,13 @@ Webpack的**工作方式**是：把你的项目当做一个整体，通过一个
 
 Webpack是一个模块打包的工具，它的作用是把互相依赖的模块处理成静态资源。
 
+**可扩展的webpack配置**是指，可重用并且可以与其他配置组合使用。这是一种流行的技术，用于将关注点从环境、构建目标、运行时中分离。然后使用专门的工具（如webpack-merge）将它们合并。
+
 
 ## 安装Webpack ##
+初始化项目：
+
+	npm init
 全局安装webpack
 
     npm install webpack -g 
@@ -15,6 +22,14 @@ Webpack是一个模块打包的工具，它的作用是把互相依赖的模块�
 作为项目的开发依赖（devDependencies）安装
 
 	npm install --save-dev webpack
+
+如果使用的是webpack v4+版本，还需要安装CLI（命令行接口）
+
+	npm install --save-dev webpack-cli
+
+或者
+
+	npm install --save-dev webpack-command
 
 ## 使用Webpack ##
 在安装Webpack的目录下，即Webpack目录下创建一个称为hello.js的模块
@@ -46,6 +61,131 @@ Webpack是一个模块打包的工具，它的作用是把互相依赖的模块�
 
 上面的例子参考的是[Webpack傻瓜式指南](https://github.com/vikingmute/webpack-for-fools/blob/master/entries/newchapter-1.md "Webpack傻瓜式指南")，下面的例子参考的是[入门webpack，看这篇就够了](https://www.jianshu.com/p/42e11515c10f "入门webpack，看这篇就够了")
 
+## webpack核心概念 ##
+- 入口（entry）
+- 输出（output）
+- loader
+- 插件（plugins）
+
+### 入口 ###
+入口指示webpack应该使用哪个模块，来作为构建其内部依赖图的开始，webpack会找出有哪些模块和library是入口起点（直接和间接）依赖的。
+
+对象语法：
+
+	//webpack.config.js
+	module.exports = {
+		entry: {
+			app: './src/app.js',
+			vendors: './src/vendors.js'
+		}
+	};
+分离应用程序（app）和第三方库（vendor）入口。（不是很懂。）
+
+参考：[https://webpack.docschina.org/concepts/entry-points](https://webpack.docschina.org/concepts/entry-points)
+
+### 出口 ###
+output属性告诉webpack在哪里输出它所创建的bundles，以及如何命名这些文件，主输出文件默认为`./dist/main.js`，其他生成文件的默认输出目录是`./dist`。
+
+参考：[webpack output api](https://webpack.docschina.org/configuration/output)
+
+### loader ###
+webpack自身只支持JavaScript。而loader能够让webpack处理那些非JavaScript文件，并且先将它们转换为有效模块，然后添加到依赖图中，这样就可以提供给应用程序使用。
+
+loader用于对模块的源代码进行转换。loader可以使你在`import`或“加载”模块时预处理文件。
+
+在webpack的配置中loader有两个特征：
+
+1. `test`属性，用于标识出应该被对应的loader进行转换的某个或某些文件。
+2. `use`属性，表示进行转换时，应该使用哪个loader。
+
+		module: {
+			rules: [
+				{
+					test: /\.txt$/,
+					use: 'raw-loader'
+				}
+			]
+		}
+	在遇到`.txt`结尾的路径时，在打包之前，先使用`raw-loader`转换一下。
+
+在你的应用程序中，有三种使用loader的方式：
+
+- 配置（推荐）：在webpack.config.js文件中指定loader。
+	- `module.rules`允许你在webpack配置中指定多个loader。
+- 内联：在每个`import`语句中显式指定loader。
+	- 使用`!`将资源中的loader分开。分开的每个部分都相对于当前目录解析。
+
+			import Styles from 'style-loader!css-loader?modules!./styles.css';
+		通过前置所有规则及使用`!`，可以将源文件对应重载到配置中的任意loader中。
+- CLI：在shell命令行中指定它们。
+
+		webpack --module-bind jade-loader --module-bind 'css=style-loader!css-loader'
+	这会对`.jade`文件使用`jade-loader`，对`.css`文件使用`style-loader`和`css-loader`。
+
+参考：[https://webpack.docschina.org/concepts/loaders](https://webpack.docschina.org/concepts/loaders)
+
+### 插件（plugins） ###
+loader被用于转换某些类型的模块，而插件则可以用于执行范围更广的任务，插件的范围包括：打包优化、资源管理和注入环境变量。
+
+想要使用一个插件，你只需要`require()`它，然后把它添加到`plugins`数组中。多数插件可以通过选项(option)自定义。你也可以在一个配置文件中因为不同目的而多次使用同一个插件，这是需要通过使用`new`操作符来创建它的一个实例。
+
+	// webpack.config.js
+	const HtmlWebpackPlugin = require('html-webpack-plugin'); // 通过npm安装
+	const webpack =  require('webpack'); // 用于访问内置插件
+
+	module.exports = {
+		module: {
+			rules: [
+				{ test: /\.txt$/, use: 'raw-loader' }
+			]
+		},
+		plugins: [
+			new HtmlWebpackPlugin({template: './src/index.html'})
+		]
+	};
+在上面的实例中，`html-webpack-plugin`会为你的应用程序生成一个html文件，然后自动注入所有生成的bundle。
+
+参考：[webpack提供的插件](https://webpack.docschina.org/plugins)
+
+
+## 模式（mode） ##
+通过将`mode`参数设置为`development`，`production`或`none`，可以启用对应环境下webpack内置的优化。默认值为`production`。
+	
+	module.exports = {
+		mode: 'production'
+	};
+
+支持以下字符串值：
+
+|选项|描述|
+|---|----|
+|`development`|会将`process.env.NODE_ENV`的值设为`development`。启用`NamedChunksPlugin`和`NamedModulesPlugin`。|
+|`production`|会将`process.env.NODE_ENV`的值设为`production`。启用`FlagDependencyUsagePlugin`，`FlagIncludeChunksPlugin`，`ModuleConcatenationPlugin`，`NoEmitOnErrorsPlugin`，`OccurrenceOrderPlugin`，`SideEffectsFlagPlugin`和`UglifyJsPlugin`。|
+|`none`|不选用任何默认优化选项|
+
+如果不设置，webpack会将production作为mode的默认值去设置。
+
+> 记住，只设置`NODE_ENV`时，不会自动设置`mode`。
+
+如果想要根据webpack.config.js中的mode变量去影响编译行为，那你必须将导出对象，改为导出一个函数：
+
+	var config = {
+		entry: './app.js'
+		// ...
+	};
+
+	module.exports = (env, argv) => {
+		if(argv.mode === 'development') {
+			config.devtool = 'source-map';
+		}
+		
+		if(argv.mode === 'production') {
+			//...
+		}
+
+		return config;
+	};
+
 
 ## 通过配置文件来使用Webpack ##
 定义一个配置文件`webpack.config.js`，这个配置文件其实也是一个简单的JavaScript模块，我们可以把所有的与打包相关的信息放在里面。
@@ -58,6 +198,16 @@ Webpack是一个模块打包的工具，它的作用是把互相依赖的模块�
 		}
 	}
 "__dirname"是node.js中的一个全局变量，它指向当前执行脚本所在的目录。
+
+使用配置文件进行构建：
+
+	webpack --config webpack.config.js
+
+如果写在package.json的scripts中：
+
+	"scripts": {
+		"build": "webpack --config webpack.config.js"
+	}
 
 有了这个配置之后，再打包文件，只需在终端里运行`webpack`命令就可以了，这条命令会自动引用`webpack.config.js`文件中的配置选项。
 
@@ -130,7 +280,11 @@ Loaders需要单独安装并且需要在`webpack.config.js`中的`modules`关键
     		// 这里是我们新添加的处理不同类型文件需要的 Loader
     		module: {
     			rules: [
-    				{ test: /\.css$/, use: [ { loader: 'style-loader' }, { loader: 'css-loader' } ]}
+    				{ test: /\.css$/,
+					  use: [ 
+						{loader: 'style-loader'}, 
+						{ loader: 'css-loader' } 
+					]}
     			]
     		}
 		}
@@ -201,7 +355,7 @@ loaders是在打包构建过程中用来处理源文件的（JSX，Scss，Less�
 	const webpack = require('webpack');
 	const HtmlWebpackPlugin = require('html-webpack-plugin');
 	module.exports = {
-		entry:__dirname + "/app/main.js",// 已多次提及的唯一入口文件
+		entry: __dirname + "/app/main.js",// 已多次提及的唯一入口文件
 		output: {
 			path: __dirname + "/public",// 打包后的文件存放的地方
 			filename: "bundle.js"// 打包后输出文件的文件名
@@ -215,11 +369,17 @@ loaders是在打包构建过程中用来处理源文件的（JSX，Scss，Less�
 		module: {
 			rules: [
 				{
+					// test 和 include 具有相同的作用，都是必须匹配选项
+					// exclude 是必不匹配选项（优先于test和include）
+					// 最佳实践：
+					// - 只在test和文件名匹配中使用正则表达式
+					// - 在include和exclude中使用绝对路径数组
+					// - 尽量避免exclude，更倾向于使用include
 					test: /(\.jsx|\.js)$/,
 					use: {
 						loader: "babel-loader",
 					},
-					exclude: /nodee_modules/
+					exclude: /node_modules/
 				},
 				{
 					test: /\.css$/,
@@ -276,3 +436,6 @@ loaders是在打包构建过程中用来处理源文件的（JSX，Scss，Less�
 
 - [Webpack傻瓜式指南](https://github.com/vikingmute/webpack-for-fools/blob/master/entries/newchapter-1.md "Webpack傻瓜式指南")
 - [入门webpack，看这篇就够了](https://www.jianshu.com/p/42e11515c10f "入门webpack，看这篇就够了")
+- [webpack 配置](https://webpack.docschina.org/configuration)
+- [webpack 命令行接口](https://webpack.docschina.org/api/cli/)
+- [webpack 模块方法](https://webpack.docschina.org/api/module-methods)
