@@ -21,7 +21,7 @@
 
 - webpack
 - vue
-- vue-loader：是一个webpack的loader，它允许你以单文件.vue的格式撰写Vue组件。
+- vue-loader：是一个webpack的loader，它允许你以单文件.vue的格式撰写Vue组件。`vue-loader`会解析文件，提取每个语言块，如有必要会通过其他loader处理，最后将他们组装成一个CommonJS模块，`module.exports`出一个Vue.js组件对象。
 
 	特性：
 
@@ -74,6 +74,13 @@
 			]
 		}
 - css-loader：解释`@import()`和`url()`，会`import/require()`后再解析（resolve）它们。
+- babel-loader：作为webpack的loader的一种，作用同其他loader一样，实现对特定文件类型的处理。虽然webpack本身就能够处理`.js`文件，但无法对ES2015+的语法进行转换，babel-loader的作用正是对使用了ES2015+语法的`.js`文件进行处理。
+
+		npm install -D babel-loader
+	注意：babel-loader 8.x对应的是@babel/core @babel/preset-env  
+		 babel-loader 7.x对应的是babel-core babel-preset-env
+- babel-core：作用在于提供一系列api。这便是说，当webpack使用babel-loader处理文件时，babel-loader实际上调用了babel-core的api
+- babel-preset-env：作用是告诉babel使用哪种转码规则进行文件处理。
 
 ## 构建生产环境 ##
 生产环境打包，目的只有两个：

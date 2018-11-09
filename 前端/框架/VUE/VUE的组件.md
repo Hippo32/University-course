@@ -51,6 +51,26 @@
 	})
 对于`components`对象中的每个属性来说，其属性名就是自定义元素的名字，其属性值就是这个组件的选项对象。
 
+### Vue.extend() ###
+用法：使用基础Vue构造器，创建一个“子类”。参数是一个包含组件选项的对象。`data`选项是特例，需要注意：在`Vue.extend()`中它必须是函数。
+
+	<div id="mount-point"></div>
+
+	// 创建构造器
+	var Profile = Vue.extend({
+		template: '<p>{{firstName}} {{lastName}} aka {{alias}}</p>',
+		data: function() {
+			return {
+			firstName: 'Walter',
+			lastName: 'White',
+			alias: 'Heisenberg'
+			}
+		}
+	})
+	//创建Profile实例，并挂载到一个元素上
+	new Profile().$mount('#mount-point')
+	
+
 ## 组件里的数据传递 ##
 ### 用prop向子组件传递数据 ###
 prop可以让你在组件上注册一些自定义特性。当一个值传递给自定义的那个prop特性的时候，它就变成了那个组件实例的一个属性。
