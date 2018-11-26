@@ -146,3 +146,124 @@ options对象
 		return response
 		})
 	})
+通常挂载在mounted。
+
+### 基本语法 ###
+引入vue-resource后，可以基于全局的Vue对象使用http，也可以基于某个Vue实例使用http。
+
+	// 基于全局Vue对象使用http
+	Vue.http.get('/someUrl', [options]).then(successCallback, errorCallback);
+	Vue.http.post('/someUrl', [body], [options]).then(successCallback, errorCallback);
+
+	// 在一个Vue实例内使用$http
+	this.$http.get('/someUrl', [options]).then(successCallback, errorCallback);
+	this.$http.post('/someUrl', [body], [options]).then(successCallback, errorCallback);
+在发送请求后，使用then方法来处理响应结果，then方法有两个参数，第一个参数是响应成功时的回调函数，第二个参数是响应失败时的回调函数。
+
+get、post、jsonp
+
+	this.$http.get('/someUrl', [options]).then((response) => {
+		//响应成功时回调
+	}, (response) => {
+		//响应错误时回调
+	});
+
+地址的全局路径配置：
+
+	http: {
+		root: ""
+	} 
+
+## axios ##
+引用
+
+- cdn：`<script src="https://unpkg.com/axios/dist/axios.min.js"></script>`
+- npm install axios 
+
+axios在项目中的用法：
+
+	// 安装axios
+	// 在.vue中引用
+	import axios from 'axios'
+
+	methods: {
+		getGoodsList() {
+			axios.get("/goods").then((result) => {
+				var res = result.data;
+			}
+		}
+	}
+
+
+## ES6 ##
+
+## AMD、CMD、CommonJS和ES6对比 ##
+什么是AMD、CMD、CommonJS？
+
+- AMD是Require在推广过程中对模块定义的规范化产出
+
+		define(['package/lib'], function(lib){
+			function foo() {
+				lib.log('hello world!');
+			}
+		
+			return {
+				foo: foo
+			};
+		});
+	特点：依赖前置
+- CMD是SeaJS在推广过程中对模块定义的规范化产出。
+	- 所有模块都通过define来定义
+	- 通过require引入依赖
+	- 特点：依赖就近
+- CommonJS规范
+	- module.exports，浏览器不支持，node支持
+- ES6特性 export/import
+
+## 商品列表基础组件拆分 ##
+- Header组件
+- Footer组件
+- 面包屑组件
+
+导入JS和导入CSS不一样
+
+- 导入JS用`import xx from './xx/xx.js';`
+- 导入CSS用`import './xx/xx.css`
+
+js用NavHeader，但是写在HTML那里不能用大写，用`<nav-header>`
+
+注意：img标签中的src要用v-bind。
+
+	<img v-bind:src="'/static/'+item.productImg">
+
+## 实现图片懒加载 ##
+图片懒加载通常用于一屏页面图片较多的时候，没有滑到图片那的时候，图片不加载，滑到才加载。
+
+官网：[https://www.npmjs.com/package/vue-lazyload](https://www.npmjs.com/package/vue-lazyload)
+
+	npm install vue-lazyload
+
+在main.js中使用
+	
+	import Vue from 'vue'
+	import App from './App.vue'
+	import VueLazyload from 'vue-lazyload'
+
+	Vue.use(VueLazyload)
+
+	new Vue({
+		el: '#app',
+		components: {
+			App
+		}
+	})
+在template中
+	
+	<ul>
+		<li v-for="img in list">
+			<img v-lazy="img.src">
+		</li>
+	</ul>
+
+## Node ##
+一个js文件是一个模块。导出用`module.exports`，导入用`require`

@@ -15,3 +15,12 @@
 	justify-content: center; /* 水平居中 */
 	align-items: center; /* 垂直居中 */
 flex模型下的垂直水平居中。
+
+
+----------
+2018/11/20 22:55:03 
+
+- 代码易维护和代码量少不可兼得
+- currentColor
+- 继承（inherit）
+
