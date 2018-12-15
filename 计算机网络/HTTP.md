@@ -214,3 +214,166 @@ MIME：多用途因特网邮件扩展。允许邮件处理文本、图片、视�
 - multipart/byteranges
 
 在HTTP报文中使用多部分对象集合时，需要在首部字段里加上`Content-type`。使用`boundary`字符串来划分多部分对象集合指明的各类实体。在`boundary`字符串指定的各个实体的起始行之前插入`--`标记（例如：`--AaB03x`、`--THIS_STRING_SEPARATES`），而在多部分对象集合对应的字符串的最后插入`--`标记。
+
+## 内容协商 ##
+内容协商机制是指客户端和服务器端就响应的资源内容进行交涉，然后提供给客户端最为适合的资源。内容协商会以响应资源的语言、字符集、编码方式等作为判断的基准。   
+包含在请求报文中的某些首部字段就是判断的基准。
+
+- Accept
+- Accept-Charset
+- Accept-Encoding
+- Accept-Language
+- Content-Language
+
+内容协商技术有以下3种类型。
+
+- 服务器驱动协商
+- 客户端驱动协商
+- 透明协商
+
+## HTTP首部字段 ##
+HTTP首部字段是构成HTTP报文的要素之一。。使用首部字段是为了给浏览器给服务器提供报文主体大小、所使用的语言、认证信息等内容。
+
+HTTP首部字段是由首部字段名和字段值构成的，中间用冒号`:`分隔。
+
+HTTP首部字段根据实际用途被分为以下4种类型。
+
+- 通用首部字段：请求报文和响应报文两方都会使用的首部。
+- 请求首部字段：从客户端向服务器端发送请求报文时使用的首部。补充了请求的附加内容、客户端信息、响应内容相关优先级等信息。
+- 响应首部字段：从服务器端向客户端返回响应报文时使用的首部。补充了响应的附加内容，也会要求客户端附加额外的内容信息。
+- 实体首部字段：针对请求报文和响应报文的实体部分使用的首部。补充了资源内容更新时间等与实体有关的信息。
+
+![](https://i.imgur.com/rnKmAze.png)
+
+![](https://i.imgur.com/IMpV5xB.png)
+
+![](https://i.imgur.com/eqzILfF.png)
+
+![](https://i.imgur.com/3ZkgkJF.png)
+
+![](https://i.imgur.com/Ee3wNeZ.png)
+
+### Cache-Contorl ###
+	Cache-Control:public
+当指定使用public指令时，则明确表明其他用户也可利用缓存。
+	
+	Cache-Control:private
+当指定使用private指令后，响应只以特定的用户作为对象。
+	
+	Cache-Control:no-cache
+使用no-cache指令的目的是为了防止从缓存中返回过期的资源。客户端发送的请求中如果包含`no-cache`指令，则表示客户端将不会接收缓存过的响应。于是，“中间”的缓存服务器必须把客户端请求转发给源服务器。如果服务器返回的响应中包含`no-cache`指令，那么缓存服务器不能对资源进行缓存。源服务器以后也将不再对缓存服务器请求中提出的资源有效性进行确认，且禁止其对响应资源进行缓存操作。
+
+	Cache-Control:no-cache=Location
+由服务器返回的响应中，若报文首部字段`Cache-Control`中对`no-cache`字段名具体指定参数值，那么客户端在接收到这个被指定参数值的首部字段对应的响应报文后，就不能使用缓存。换言之，无参数值的首部字段可以使用缓存。只能在响应指令中指定该参数。
+
+	Cache-Control:no-store
+当使用`no-store`指令时，暗示请求（和对应的响应）或响应中包含机密信息。该指令规定缓存不能在本地存储请求或响应的任一部分。
+	
+	Cache-Control: s-maxage=604800(单位：秒)
+`s-maxage`指令的功能和`max-age`指令的相同，它们的不同点是`s-maxage`指令只适用于供多位用户使用的公共缓存服务器。当使用`s-maxage`指令后，则直接忽略对`Expires`首部字段及`max-age`指令的处理。
+
+	Cache-Control: max-age=604800（单位：秒）
+当客户端发送的请求中包含`max-age`指令时，如果判定缓存资源的缓存时间数值比指定时间的数值更小，那么客户端就接收缓存的资源。另外，当指定`max-age`值为0，那么缓存服务器通常需要将请求转发给源服务器。应用HTTP/1.1版本的缓存服务器遇到同时存在Expires首部字段的情况时，会优先处理`max-age`指令，而忽略掉`Expires`首部字段。而HTTP/1.0版本的缓存服务器的情况却相反，`max-age`指令会被忽略掉。
+
+	Cache-Control: min-fresh=60(单位：秒)
+`min-fresh`指令要求缓存服务器返回至少还未过指定时间的缓存资源。
+
+	Cache-Control: max-stale=3600（单位：秒）
+使用`max-stale`可指示缓存资源，即使过期也照常接收。如果指令未指定参数值，那么无论经过多久，客户端都会接收响应；如果指令中指定了具体数值，那么即使过期，只要仍处于`max-stale`指定的时间内，仍旧会被客户端接收。
+
+	Cache-Control: only-if-cached
+使用`only-if-cached`指令表示客户端仅在缓存服务器本地缓存目标资源的情况下才会要求其返回。
+
+	Cache-Control: must-revalidate
+使用`must-revalidate`指令，代理会向源服务器再次验证即将返回的响应缓存目前是否仍然有效。另外，使用`must-revalidate`指令会忽略请求的`max-stale`指令（即使已经在首部使用了`max-stale`，也不会再有效果）。
+
+	Cache-Control: proxy-revalidate
+`proxy-revalidate`指令要求所有的缓存服务器在接收到客户端带有该指令的请求返回响应之前，必须再次验证缓存的有效性。
+
+	Cache-Control: no-transform
+使用`no-transform`指令规定无论是在请求还是响应中，缓存都不能改变实体主体的媒体类型。
+
+### Connection ###
+Connection首部字段具备如下两个作用。
+
+- 控制不再转发给代理的首部字段
+- 管理持久连接
+
+		Connection: 不再转发的首部字段名
+		Connection: close
+HTTP/1.1版本的默认连接都是持久连接。为此，客户端会在持久连接上连续发送请求。当服务器端想明确断开连接时，则指定Connection首部字段的值为Close。
+	
+		Connection: Keep-Alive
+HTTP/1.1之前的HTTP版本的默认连接都是非持久连接。
+
+### Date ###
+首部字段`Date`表明创建HTTP报文的日期和时间。
+
+HTTP/1.1协议使用在RFC1123中规定的日期时间的格式，如下示例。
+
+	Date: Tue, 03 Jul 2012 04:40:59 GMT
+之前的HTTP协议版本周使用在RFC850中定义的格式，如下所示。
+
+	Date: Tue 03-Jul-12 04:40:59 GMT
+
+### Pragma ###
+Pragma时HTTP/1.1之前版本的历史遗留字段，仅作为与HTTP/1.0的向后兼容而定义。
+
+	Pragma: no-cache
+该首部字段属于通用首部字段，但用在客户端发送的请求中。客户端会要求所有的中间服务器不返回缓存的资源。
+
+### Trailer ###
+首部字段`Trailer`会事先说明在报文主体后记录了哪些首部字段。该首部字段可应用在HTTP/1.1版本分块传输编码时。
+
+### Transfer-Encoding ###
+首部字段`Transfer-Encoding`规定了传输报文主体时采用的编码方式。
+
+### Upgrade ###
+首部字段`Upgrade`用于检测HTTP协议及其他协议是否可使用更高的版本进行通信，其参数值可以用来指定一个完全不同的通信协议。`Upgrade`首部字段产生作用的Upgrade对象仅限于客户端和邻接服务器之间。因此，使用首部字段Upgrade时，还需要额外指定Connection:Upgrade。对于附有首部字段Upgrade的请求，服务器可用101 Switching Protocols状态码作为响应返回。
+
+### Via ###
+使用首部字段Via时为了追踪客户端与服务器之间的请求和响应报文的传输路径。  
+报文经过代理或网关时，会先在首部字段Via中附加该服务器的信息，然后再进行转发。  
+首部字段Via不仅用于追踪报文的转发，还可避免请求回环的发生。所以必须在经过代理时附加该首部字段内容。  
+Via首部是为了追踪传输路径，所以经常会和TRACE方法一起使用。
+
+### Warning ###
+HTTP/1.1的Warning首部是从HTTP/1.0的响应首部（Retry-After）演变过来的。该首部通常会告知用户一些与缓存相关的问题的警告。
+
+	Warning: [警告码][警告的主机:端口号] "[警告内容]" ([日期时间])
+HTTP/1.1中定义了7中警告。警告码对应的警告内容仅推荐参考。另外，警告码具备扩展性。
+
+HTTP/1.1 警告码
+
+|警告码|警告内容|说明|
+|:-:|-|-|
+|110|Response is stale（响应已过期）|代理返回已过期的资源|
+|111|Revalidation failed（再验证失败）|代理再验证资源有效性时失败（服务器无法到达等原因）|
+|112|Disconnection Operation（断开连接操作）|代理与互联网连接被故意切断|
+|113|Heuristic expiration（试探性过期）|响应的使用期超过24小时（有效缓存的设定时间大于24小时的情况下）|
+|199|Miscellaneous warning（杂项警告）|任意的警告内容|
+|214|Transformation applied（使用了转换）|代理对内容编码或媒体类型等执行了某些处理时|
+|299|Miscellaneous persistent warning（持久杂项警告）|任意的警告内容|
+
+## 请求首部字段 ##
+### Accept ###
+	Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept首部字段可通知服务器，用户代理能够处理的媒体类型及媒体类型的相关优先级。可使用`type/subtype`这种形式，一次指定多种媒体类型。  
+若想要给现实的媒体类型增加优先级，则使用`q=`来额外表示权重值，用分号（`;`）进行分隔。权重值q的范围是0~1（可精确到小数点后3位），且1为最大值。不指定权重q值时，默认权重为q=1.0。当服务器提供多种内容时，将会首先返回权重值最高的媒体类型。
+
+### Accept-Charset ###
+	Accept-Charset: iso-8859-5,unicode-1-1;q=0.8
+Accept-Charset首部字段可用来通知服务器用户代理支持的字符集及字符集的相对优先顺序。另外，可一次性指定多种字符集。
+
+### Accept-Encoding ###
+	Accept-Encoding: gzip, deflate
+Accept-Encoding首部字段用来告知服务器用户代理支持的内容编码及内容编码的优先级顺序。可一次性指定多种内容编码。
+
+- gzip：由文件压缩程序gzip（GNU zip）生成的编码格式（RFC1952），采用Lempel-Ziv算法（LZ77）及32位循环冗余校验（CRC）。
+- compress：由UNIX文件压缩程序compress生成的编码格式，采用Lempel-Ziv-Welch算法（LZW）。
+- deflate：组合使用zlib（RFC1950）及由deflate压缩算法（RFC1951）生成的编码格式。
+- identify：不执行压缩或不会变化的默认编码格式
+
+### Accept-Language ###
+	Accept-Language: zh-cn,zh;q=0.7,en-us,en;q=0.3
+首部字段Accept-Language用来告知服务器用户代理能够处理的自然语言集（指中文或英文等），以及自然语言集的相对优先级。可一次指定多种
