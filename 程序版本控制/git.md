@@ -1,4 +1,7 @@
 # Git #
+## 检出仓库 ##
+	git clone xxx
+
 ## 创建分支后的一系列操作 ##
 	git branch huangry // 创建自己的分支
 	git checkout huangry // 跳转到自己的分支
