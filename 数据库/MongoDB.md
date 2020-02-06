@@ -68,6 +68,14 @@ MongoDB的默认端口是27017
 ## 停止服务 ##
 	net stop mongodb
 
+## 用命令行使用mongodb ##
+输入`mongo`就进入mongodb模式。  
+
+- `show dbs`：查看数据库
+- `use dbName`：切换到某个数据库
+- `db.tableName.insert({"xx": "xx"});`在未知表中插入一条数据
+- `show collections`可以看数据库中的表
+
 ## MongoDB概念解析 ##
 |SQL术语/概念|MongoDB术语/概念|解释/说明|
 |-|-|-|
