@@ -1,92 +1,8 @@
 # webpack #
-webpack版本：4.23.1
 
-## 什么是Webpack ##
-WebPack可以看做是模块打包机：它做的事情是，分析你的项目结构，找到JavaScript模块以及其它的一些浏览器不能直接运行的拓展语言（Scss，TypeScript等），并将其转换和打包为合适的格式供浏览器使用。
-
-Webpack的**工作方式**是：把你的项目当做一个整体，通过一个给定的主文件（如：index.js），Webpack将从这个文件开始找到你的项目的所有依赖文件，使用loaders处理它们，最后打包为一个（或多个）浏览器可识别的JavaScript文件。
-
-Webpack是一个模块打包的工具，它的作用是把互相依赖的模块处理成静态资源。
-
-**可扩展的webpack配置**是指，可重用并且可以与其他配置组合使用。这是一种流行的技术，用于将关注点从环境、构建目标、运行时中分离。然后使用专门的工具（如webpack-merge）将它们合并。
+上面的例子参考的是，下面的例子参考的是[入门webpack，看这篇就够了](https://www.jianshu.com/p/42e11515c10f "入门webpack，看这篇就够了")
 
 
-## 安装Webpack ##
-初始化项目：
-
-	npm init
-全局安装webpack
-
-    npm install webpack -g 
-
-作为项目的开发依赖（devDependencies）安装
-
-	npm install --save-dev webpack
-
-如果使用的是webpack v4+版本，还需要安装CLI（命令行接口）
-
-	npm install --save-dev webpack-cli
-
-或者
-
-	npm install --save-dev webpack-command
-
-## 使用Webpack ##
-在安装Webpack的目录下，即Webpack目录下创建一个称为hello.js的模块
-
-    //hello.js
-	export default function () {
-    alert('from anohter planet')
-	}
-
-    //index.js
-	import hello from './hello'
-	//调用这个方法
-	hello()
-
-使用webpack来处理我们的入口文件。使用webpack cli可以传入两个参数，第一个是入口文件，这里就是index.js，第二个是输出文件的名字，这里命名为bundle.js，暂时不管bundle.js里面是什么内容。
-
-    webpack index.js bundle.js
-现在发现bundle.js被创建出来，再创建一个html页面来引用它。
-
-    <html>
-  		<head>
-    		<title> Our first webpack exmaple </title>
-  		</head>
-  		<body>
-    		<script src="bundle.js"></script>
-  		</body>
-	</html>
-用浏览器打开这个html页面，发现alert出现了，成功。
-
-上面的例子参考的是[Webpack傻瓜式指南](https://github.com/vikingmute/webpack-for-fools/blob/master/entries/newchapter-1.md "Webpack傻瓜式指南")，下面的例子参考的是[入门webpack，看这篇就够了](https://www.jianshu.com/p/42e11515c10f "入门webpack，看这篇就够了")
-
-## webpack核心概念 ##
-- 入口（entry）
-- 输出（output）
-- loader
-- 插件（plugins）
-
-### 入口 ###
-入口指示webpack应该使用哪个模块，来作为构建其内部依赖图的开始，webpack会找出有哪些模块和library是入口起点（直接和间接）依赖的。
-
-对象语法：
-
-	//webpack.config.js
-	module.exports = {
-		entry: {
-			app: './src/app.js',
-			vendors: './src/vendors.js'
-		}
-	};
-分离应用程序（app）和第三方库（vendor）入口。（不是很懂。）
-
-参考：[https://webpack.docschina.org/concepts/entry-points](https://webpack.docschina.org/concepts/entry-points)
-
-### 出口 ###
-output属性告诉webpack在哪里输出它所创建的bundles，以及如何命名这些文件，主输出文件默认为`./dist/main.js`，其他生成文件的默认输出目录是`./dist`。
-
-参考：[webpack output api](https://webpack.docschina.org/configuration/output)
 
 ### loader ###
 webpack自身只支持JavaScript。而loader能够让webpack处理那些非JavaScript文件，并且先将它们转换为有效模块，然后添加到依赖图中，这样就可以提供给应用程序使用。
@@ -125,7 +41,6 @@ loader用于对模块的源代码进行转换。loader可以使你在`import`或
 参考：[https://webpack.docschina.org/concepts/loaders](https://webpack.docschina.org/concepts/loaders)
 
 ### 插件（plugins） ###
-loader被用于转换某些类型的模块，而插件则可以用于执行范围更广的任务，插件的范围包括：打包优化、资源管理和注入环境变量。
 
 想要使用一个插件，你只需要`require()`它，然后把它添加到`plugins`数组中。多数插件可以通过选项(option)自定义。你也可以在一个配置文件中因为不同目的而多次使用同一个插件，这是需要通过使用`new`操作符来创建它的一个实例。
 
@@ -187,35 +102,8 @@ loader被用于转换某些类型的模块，而插件则可以用于执行范�
 	};
 
 
-## 通过配置文件来使用Webpack ##
-定义一个配置文件`webpack.config.js`，这个配置文件其实也是一个简单的JavaScript模块，我们可以把所有的与打包相关的信息放在里面。
-
-    module.exports = {
-	 entry: __dirname + "/app/main.js",//已多次提及的唯一入口文件
-	 output: {
-		path: __dirname + "/public",//打包后的文件存放的地方 
-	 	filename: "bundle.js"//打包后输出文件的文件名
-		}
-	}
-"__dirname"是node.js中的一个全局变量，它指向当前执行脚本所在的目录。
-
-使用配置文件进行构建：
-
-	webpack --config webpack.config.js
-
-如果写在package.json的scripts中：
-
-	"scripts": {
-		"build": "webpack --config webpack.config.js"
-	}
-
-有了这个配置之后，再打包文件，只需在终端里运行`webpack`命令就可以了，这条命令会自动引用`webpack.config.js`文件中的配置选项。
-
 
 # Webpack的强大功能 #
-## 生成Source Maps（使调试更容易） ##
-通过简单的配置，webpack就可以在打包时为我们生成的`source maps`，这为我们提供了一种对应编译文件和源文件的方法，使得编译后的代码可读性更高，也更容易调试。
-
 ## 使用webpack构建本地服务器 ##
 webpack提供一个可选的本地开发服务器，这个本地服务器基于node.js构建，可以让你的浏览器监听你的代码的修改，并自动刷新显示修改后的结果，不过它是一个单独的组件，在webpack中进行配置之前需要单独安装它作为项目依赖
 
@@ -297,10 +185,6 @@ ps：style-loader作用是将样式动态的使用js插入到页面中去，css-
 
 在官方网站找到各种webpack的loaders列表：[Webpack Loader List](https://webpack.js.org/loaders/ "Webpack Loader List")
 ## 插件（Plugins） ##
-插件（Plugins）是用来拓展Webpack功能的，它们会在整个构建过程中生效，执行相关的任务。
-
-loaders是在打包构建过程中用来处理源文件的（JSX，Scss，Less……），一次处理一个，插件并不直接操作单个文件，它直接对整个构建过程起作用。Loader 关心的是单个文件的处理和转换，而 Plugin 更关注于整个项目整体的处理和帮助。
-
 要使用某个插件，我们需要通过`npm`安装它，然后要做的就是在webpack配置中的plugins关键字部分添加该插件的一个实例（plugins是一个数组）。
 
 **常用的插件**
@@ -434,7 +318,6 @@ loaders是在打包构建过程中用来处理源文件的（JSX，Scss，Less�
 
 参考文章：
 
-- [Webpack傻瓜式指南](https://github.com/vikingmute/webpack-for-fools/blob/master/entries/newchapter-1.md "Webpack傻瓜式指南")
 - [入门webpack，看这篇就够了](https://www.jianshu.com/p/42e11515c10f "入门webpack，看这篇就够了")
 - [webpack 配置](https://webpack.docschina.org/configuration)
 - [webpack 命令行接口](https://webpack.docschina.org/api/cli/)
